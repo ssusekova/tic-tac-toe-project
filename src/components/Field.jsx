@@ -1,15 +1,31 @@
-import PropTypes from 'prop-types';
 import styles from './Field.module.css';
+import { store } from '../store';
+import { useEffect, useState } from 'react';
 
-export const FieldContainer = ({
-	currentPlayer,
-	field,
-	WIN_PATTERNS,
-	setCurrentPlayer,
-	setIsGameEnded,
-	setIsDraw,
-	setField,
-}) => {
+const WIN_PATTERNS = [
+	[0, 1, 2],
+	[3, 4, 5],
+	[6, 7, 8], // Варианты побед по горизонтали
+	[0, 3, 6],
+	[1, 4, 7],
+	[2, 5, 8], // Варианты побед по вертикали
+	[0, 4, 8],
+	[2, 4, 6], // Варианты побед по диагонали
+];
+
+export const Field = () => {
+	const [state, setState] = useState(store.getState());
+
+	useEffect(() => {
+		const unsubscribe = store.subscribe(() => {
+			setState(store.getState());
+		});
+
+		return unsubscribe;
+	}, []);
+
+	const { currentPlayer, field } = state;
+
 	const checkAndSetFieldValue = (index) => {
 		if (field[index]) {
 			return;
@@ -18,7 +34,7 @@ export const FieldContainer = ({
 		const newField = [...field];
 		newField[index] = currentPlayer;
 
-		setField(newField);
+		store.dispatch({ type: 'SET_FIELD', payload: newField });
 
 		const isCurrentPlayerWinner = WIN_PATTERNS.some(([a, b, c]) => {
 			return (
@@ -29,22 +45,21 @@ export const FieldContainer = ({
 		});
 
 		if (isCurrentPlayerWinner) {
-			setIsGameEnded(true);
+			store.dispatch({ type: 'SET_IS_GAME_ENDED', payload: true });
 			return;
 		}
 
 		if (newField.every((item) => item !== '')) {
-			setIsDraw(true);
+			store.dispatch({ type: 'SET_IS_DRAW', payload: true });
 			return;
 		}
 
-		setCurrentPlayer((prevPlayer) => (prevPlayer === 'X' ? 'O' : 'X'));
+		store.dispatch({
+			type: 'SET_CURRENT_PLAYER',
+			payload: currentPlayer === 'X' ? 'O' : 'X',
+		});
 	};
 
-	return <FieldLayout field={field} checkAndSetFieldValue={checkAndSetFieldValue} />;
-};
-
-const FieldLayout = ({ field, checkAndSetFieldValue }) => {
 	return (
 		<div className={styles.fieldContainer}>
 			{field.map((item, index) => (
@@ -59,19 +74,4 @@ const FieldLayout = ({ field, checkAndSetFieldValue }) => {
 			))}
 		</div>
 	);
-};
-
-FieldContainer.propTypes = {
-	currentPlayer: PropTypes.string,
-	field: PropTypes.array,
-	WIN_PATTERNS: PropTypes.array,
-	setCurrentPlayer: PropTypes.func,
-	setIsGameEnded: PropTypes.func,
-	setIsDraw: PropTypes.func,
-	setField: PropTypes.func,
-};
-
-FieldLayout.propTypes = {
-	field: PropTypes.array,
-	checkAndSetFieldValue: PropTypes.func,
 };

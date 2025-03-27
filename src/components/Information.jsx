@@ -1,7 +1,20 @@
-import PropTypes from 'prop-types';
 import styles from './Information.module.css';
+import { store } from '../store';
+import { useEffect, useState } from 'react';
 
-export const InformationContainer = ({ currentPlayer, isDraw, isGameEnded }) => {
+export const Information = () => {
+	const [state, setState] = useState(store.getState());
+
+	useEffect(() => {
+		const unsubscribe = store.subscribe(() => {
+			setState(store.getState());
+		});
+
+		return unsubscribe;
+	}, []);
+
+	const { currentPlayer, isGameEnded, isDraw } = state;
+
 	const getStatusOfGame = () => {
 		if (isDraw) return { text: 'Ничья', status: 'draw' };
 		if (!isDraw && isGameEnded)
@@ -11,26 +24,11 @@ export const InformationContainer = ({ currentPlayer, isDraw, isGameEnded }) => 
 	};
 
 	const { text, status } = getStatusOfGame();
-	return <InformationLayout textOfStatus={text} status={status} />;
-};
-
-const InformationLayout = ({ textOfStatus, status }) => {
 	return (
 		<div className={styles.informationContainer}>
 			<label className={`${styles.informationLabel} ${styles[status]}`}>
-				{textOfStatus}
+				{text}
 			</label>
 		</div>
 	);
-};
-
-InformationContainer.propTypes = {
-	currentPlayer: PropTypes.string,
-	isDraw: PropTypes.bool,
-	isGameEnded: PropTypes.bool,
-};
-
-InformationLayout.propTypes = {
-	textOfStatus: PropTypes.string,
-	status: PropTypes.oneOf(['draw', 'success', 'turn']),
 };
