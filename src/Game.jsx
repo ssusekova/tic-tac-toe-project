@@ -2,20 +2,12 @@ import Confetti from 'react-confetti';
 import styles from './Game.module.css';
 import { Information } from './components/Information';
 import { Field } from './components/Field';
-import { store } from './store';
-import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { resetGame } from './actions';
 
 export const GameContainer = () => {
-	const [state, setState] = useState(store.getState());
-
-	useEffect(() => {
-		const unsubscribe = store.subscribe(() => {
-			setState(store.getState());
-		});
-
-		return unsubscribe;
-	}, []);
-	const { isGameEnded } = state;
+	const isGameEnded = useSelector((state) => state.isGameEnded);
+	const dispatch = useDispatch();
 	return (
 		<>
 			<Information />
@@ -23,7 +15,7 @@ export const GameContainer = () => {
 			<div className={styles.restartButtonContainer}>
 				<button
 					className={styles.restartButton}
-					onClick={() => store.dispatch({ type: 'RESET_GAME' })}
+					onClick={() => dispatch(resetGame())}
 				>
 					Начать заново
 				</button>

@@ -1,19 +1,11 @@
 import styles from './Information.module.css';
-import { store } from '../store';
-import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 export const Information = () => {
-	const [state, setState] = useState(store.getState());
-
-	useEffect(() => {
-		const unsubscribe = store.subscribe(() => {
-			setState(store.getState());
-		});
-
-		return unsubscribe;
-	}, []);
-
-	const { currentPlayer, isGameEnded, isDraw } = state;
+	const currentPlayer = useSelector((state) => state.currentPlayer);
+	const isGameEnded = useSelector((state) => state.isGameEnded);
+	const isDraw = useSelector((state) => state.isDraw);
+	console.log(isDraw);
 
 	const getStatusOfGame = () => {
 		if (isDraw) return { text: 'Ничья', status: 'draw' };

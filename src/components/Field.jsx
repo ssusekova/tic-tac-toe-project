@@ -1,6 +1,6 @@
 import styles from './Field.module.css';
-import { store } from '../store';
-import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setField, setIsGameEnded, setIsDraw, setCurrentPlayer } from '../actions';
 
 const WIN_PATTERNS = [
 	[0, 1, 2],
@@ -14,17 +14,9 @@ const WIN_PATTERNS = [
 ];
 
 export const Field = () => {
-	const [state, setState] = useState(store.getState());
-
-	useEffect(() => {
-		const unsubscribe = store.subscribe(() => {
-			setState(store.getState());
-		});
-
-		return unsubscribe;
-	}, []);
-
-	const { currentPlayer, field } = state;
+	const currentPlayer = useSelector((state) => state.currentPlayer);
+	const field = useSelector((state) => state.field);
+	const dispatch = useDispatch();
 
 	const checkAndSetFieldValue = (index) => {
 		if (field[index]) {
@@ -34,7 +26,7 @@ export const Field = () => {
 		const newField = [...field];
 		newField[index] = currentPlayer;
 
-		store.dispatch({ type: 'SET_FIELD', payload: newField });
+		dispatch(setField(newField));
 
 		const isCurrentPlayerWinner = WIN_PATTERNS.some(([a, b, c]) => {
 			return (
@@ -45,19 +37,16 @@ export const Field = () => {
 		});
 
 		if (isCurrentPlayerWinner) {
-			store.dispatch({ type: 'SET_IS_GAME_ENDED', payload: true });
+			dispatch(setIsGameEnded(true));
 			return;
 		}
 
 		if (newField.every((item) => item !== '')) {
-			store.dispatch({ type: 'SET_IS_DRAW', payload: true });
+			dispatch(setIsDraw(true));
 			return;
 		}
 
-		store.dispatch({
-			type: 'SET_CURRENT_PLAYER',
-			payload: currentPlayer === 'X' ? 'O' : 'X',
-		});
+		dispatch(setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X'));
 	};
 
 	return (
