@@ -1,5 +1,5 @@
-import styles from './Field.module.css';
-import { useSelector, useDispatch } from 'react-redux';
+import { Component } from 'react';
+import { connect } from 'react-redux';
 import { setField, setIsGameEnded, setIsDraw, setCurrentPlayer } from '../actions';
 
 const WIN_PATTERNS = [
@@ -13,54 +13,65 @@ const WIN_PATTERNS = [
 	[2, 4, 6], // Варианты побед по диагонали
 ];
 
-export const Field = () => {
-	const currentPlayer = useSelector((state) => state.currentPlayer);
-	const field = useSelector((state) => state.field);
-	const dispatch = useDispatch();
+class FieldClass extends Component {
+	constructor(props) {
+		super(props);
+	}
 
-	const checkAndSetFieldValue = (index) => {
-		if (field[index]) {
+	checkAndSetFieldValue = (index) => {
+		if (this.props.field[index]) {
 			return;
 		}
 
-		const newField = [...field];
-		newField[index] = currentPlayer;
+		const newField = [...this.props.field];
+		newField[index] = this.props.currentPlayer;
 
-		dispatch(setField(newField));
+		this.props.dispatch(setField(newField));
 
 		const isCurrentPlayerWinner = WIN_PATTERNS.some(([a, b, c]) => {
 			return (
-				newField[a] === currentPlayer &&
-				newField[b] === currentPlayer &&
-				newField[c] === currentPlayer
+				newField[a] === this.props.currentPlayer &&
+				newField[b] === this.props.currentPlayer &&
+				newField[c] === this.props.currentPlayer
 			);
 		});
 
 		if (isCurrentPlayerWinner) {
-			dispatch(setIsGameEnded(true));
+			this.props.dispatch(setIsGameEnded(true));
 			return;
 		}
 
 		if (newField.every((item) => item !== '')) {
-			dispatch(setIsDraw(true));
+			this.props.dispatch(setIsDraw(true));
 			return;
 		}
 
-		dispatch(setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X'));
+		this.props.dispatch(
+			setCurrentPlayer(this.props.currentPlayer === 'X' ? 'O' : 'X'),
+		);
 	};
 
-	return (
-		<div className={styles.fieldContainer}>
-			{field.map((item, index) => (
-				<button
-					key={index}
-					className={styles.buttonCell}
-					onClick={() => checkAndSetFieldValue(index)}
-					disabled={!!item}
-				>
-					{item}
-				</button>
-			))}
-		</div>
-	);
-};
+	render() {
+		return (
+			<div className="grid grid-cols-3 gap-2 w-64 mx-auto my-4">
+				{this.props.field.map((item, index) => (
+					<button
+						key={index}
+						className="w-16 h-16 text-2xl font-bold border border-gray-400 rounded hover:bg-gray-100 disabled:bg-gray-200 transition"
+						onClick={() => this.checkAndSetFieldValue(index)}
+						disabled={!!item}
+					>
+						{item}
+					</button>
+				))}
+			</div>
+		);
+	}
+}
+
+const mapStateToProps = (state) => ({
+	currentPlayer: state.currentPlayer,
+	field: state.field,
+});
+
+export const Field = connect(mapStateToProps)(FieldClass);
